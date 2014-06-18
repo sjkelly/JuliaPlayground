@@ -9,15 +9,6 @@ function print_args(;args...)
     println(str)
 end
 
-function print_args(args::Array{Symbol,Number})
-    # do some formatting
-    str = ""
-    for (key, val) in args
-        str *= string(key, " " , val, " ")
-    end
-    println(str)
-end
-
 function arg_collector(;args...)
 
     # do some operation on args
