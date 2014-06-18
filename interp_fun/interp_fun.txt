@@ -1,0 +1,7 @@
+$(hello)
+
+Some Text
+
+$(interp_me)
+
+Hello again
