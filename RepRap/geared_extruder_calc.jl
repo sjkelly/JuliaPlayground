@@ -2,7 +2,7 @@
 
 gear_ratio = 37/13
 
-steps_per_rev = 200*16
+steps_per_rev = 400*16
 
 bolt_diameter = 7.5
 
