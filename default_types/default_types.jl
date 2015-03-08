@@ -22,36 +22,40 @@ macro default(expr)
 
         field_name(a::Symbol) = a
         field_name(a::Expr) = a.args[1]
+        type_symbol(a::Symbol) = a
+        type_symbol(a::Expr) = a.args[1]
 
-        type_name = expr.args[2]
-        block = expr.args[3]
-        field_names = Any[]
-        defaults = Any[]
-        fields = Any[]
-        if block.head == :(block)
-            for arg in block.args
-                if arg.head == :(=)
-                    val = arg.args[2]
-                    field = var_name(arg.args[1])
-                    push!(field_names, field)
-                    push!(defaults, :($field = $val))
-                    push!(fields, arg.args[1])
+        type_name = type_symbol(expr.args[2])
+
+        for i = 3:length(expr.args)
+            block = expr.args[i]
+            if block.head == :(block)
+                field_names = Any[]
+                defaults = Any[]
+                fields = Any[]
+                for arg in block.args
+                    if arg.head == :(=)
+                        val = arg.args[2]
+                        field = field_name(arg.args[1])
+                        push!(field_names, field)
+                        push!(defaults, :($field = $val))
+                        push!(fields, arg.args[1])
+                    end
                 end
+                # replace block with just fields names and type annotations
+                block.args = fields
+                for default in defaults
+                    default.head = :kw
+                end
+                kwarg_func = :(function $type_name(;$(defaults...))
+                                    $type_name($(field_names...))
+                               end)
+                default_type = :(begin
+                                    $expr
+                                    $kwarg_func
+                                end)
+                return esc(default_type)
             end
-            # replace block with just fields names and type annotations
-            block.args = fields
         end
-        for default in defaults
-            default.head = :kw
-        end
-        kwarg_func = :(function $type_name(;$(defaults...))
-                            $type_name($(field_names...))
-                       end)
-        dump(kwarg_func.args[1].args)
-        default_type = :(begin
-                            $expr
-                            $kwarg_func
-                        end)
-        return esc(default_type)
     end
 end
